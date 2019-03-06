@@ -16,6 +16,28 @@ app.use(bodyParser.json());
 
 const TEMPORARY_HARDCODED_USER_ID = '5c7b7f7d3e970b6d549f7c01';
 
+const events = eventIds => {
+    return Event
+        .find({_id: {$in: eventIds}})
+        .then(events => events.map(event => ({
+            ...event._doc,
+            _id: event.id,
+            creator: user.bind(this, event.creator)
+        })))
+};
+
+const user = userId => {
+    return User.findById(userId)
+        .then(user => ({
+            ...user._doc,
+            _id: user.id,
+            createdEvents: events.bind(this, user._doc.createdEvents)
+        }))
+        .catch(err => {
+            throw err;
+        });
+};
+
 app.use('/graphql',
     graphqlHttp({
         schema: buildSchema(`
@@ -64,10 +86,12 @@ app.use('/graphql',
         rootValue: {
             events: () => {
                 return Event.find()
+                    .populate('creator')
                     .then(events =>
                         events.map(event => ({
                             ...event._doc,
-                            _id: event.id
+                            _id: event.id,
+                            creator: user.bind(this, event._doc.creator)
                         }))
                     )
                     .catch(err => {
@@ -86,7 +110,11 @@ app.use('/graphql',
                 return event
                     .save()
                     .then(result => {
-                        createdEvent = {...result._doc, _id: result._doc._id.toString()};
+                        createdEvent = {
+                            ...result._doc,
+                            _id: result._doc._id.toString(),
+                            creator: user.bind(this, result._doc.creator)
+                        };
                         return User.findById(TEMPORARY_HARDCODED_USER_ID);
                     })
                     .then(user => {

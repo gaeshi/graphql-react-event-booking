@@ -14,6 +14,8 @@ const app = express();
 
 app.use(bodyParser.json());
 
+const TEMPORARY_HARDCODED_USER_ID = '5c7b7f7d3e970b6d549f7c01';
+
 app.use('/graphql',
     graphqlHttp({
         schema: buildSchema(`
@@ -23,12 +25,14 @@ app.use('/graphql',
                 description: String!
                 price: Float!
                 date: String!
+                creator: User!
             }
             
             type User {
                 _id: ID!
                 email: String!
                 password: String
+                createdEvents: [Event!]
             }
             
             input EventInput {
@@ -75,15 +79,26 @@ app.use('/graphql',
                     title: args.eventInput.title,
                     description: args.eventInput.description,
                     price: +args.eventInput.price,
-                    date: new Date(args.eventInput.date)
+                    date: new Date(args.eventInput.date),
+                    creator: TEMPORARY_HARDCODED_USER_ID
                 });
+                let createdEvent;
                 return event
                     .save()
                     .then(result => {
-                        console.log(result);
-                        return {
-                            ...result._doc, _id: event.id
-                        };
+                        createdEvent = {...result._doc, _id: result._doc._id.toString()};
+                        return User.findById(TEMPORARY_HARDCODED_USER_ID);
+                    })
+                    .then(user => {
+                        if (!user) {
+                            throw new Error('User does not exist.');
+                        }
+
+                        user.createdEvents.push(event);
+                        return user.save();
+                    })
+                    .then(result => {
+                        return createdEvent;
                     })
                     .catch(console.error);
             },

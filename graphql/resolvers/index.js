@@ -12,6 +12,7 @@ const events = eventIds => {
         .then(events => events.map(event => ({
             ...event._doc,
             _id: event.id,
+            date: new Date(event._doc.date).toISOString(),
             creator: user.bind(this, event.creator)
         })))
 };
@@ -36,6 +37,7 @@ module.exports = {
                 events.map(event => ({
                     ...event._doc,
                     _id: event.id,
+                    date: new Date(event._doc.date).toISOString(),
                     creator: user.bind(this, event._doc.creator)
                 }))
             )
@@ -58,6 +60,7 @@ module.exports = {
                 createdEvent = {
                     ...result._doc,
                     _id: result._doc._id.toString(),
+                    date: new Date(event._doc.date).toISOString(),
                     creator: user.bind(this, result._doc.creator)
                 };
                 return User.findById(TEMPORARY_HARDCODED_USER_ID);

@@ -15,6 +15,15 @@ const transformEvent = event => ({
     creator: user.bind(this, event.creator)
 });
 
+const transformBooking = booking => ({
+    ...booking._doc,
+    _id: booking.id,
+    user: user.bind(this, booking._doc.user),
+    event: singleEvent.bind(this, booking._doc.event),
+    createdAt: dateToString(booking._doc.createdAt),
+    updatedAt: dateToString(booking._doc.updatedAt)
+});
+
 const events = async eventIds => {
     try {
         const events = await Event.find({_id: {$in: eventIds}});
@@ -58,16 +67,7 @@ module.exports = {
     bookings: async () => {
         try {
             const bookings = await Booking.find();
-            return bookings.map(b => {
-                return {
-                    ...b._doc,
-                    _id: b.id,
-                    user: user.bind(this, b._doc.user),
-                    event: singleEvent.bind(this, b._doc.event),
-                    createdAt: dateToString(b._doc.createdAt),
-                    updatedAt: dateToString(b._doc.updatedAt)
-                }
-            })
+            return bookings.map(b => transformBooking(b));
         } catch (err) {
             throw err;
         }
@@ -129,14 +129,7 @@ module.exports = {
             event: fetchedEvent
         });
         const result = await booking.save();
-        return {
-            ...result._doc,
-            _id: result.id,
-            user: user.bind(this, result._doc.user),
-            event: singleEvent.bind(this, result._doc.event),
-            createdAt: dateToString(result._doc.createdAt),
-            updatedAt: dateToString(result._doc.updatedAt)
-        }
+        return transformBooking(result);
     },
     cancelBooking: async args => {
         const booking = await Booking.findById({_id: args.bookingId}).populate('event');

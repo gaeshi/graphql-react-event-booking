@@ -2,8 +2,7 @@ const Event = require('../../models/event');
 const User = require('../../models/user');
 
 const {transformEvent} = require("./merge");
-
-const TEMPORARY_HARDCODED_USER_ID = '5c7b7f7d3e970b6d549f7c01';
+const {checkAuth} = require("../../helpers/auth");
 
 module.exports = {
     events: async () => {
@@ -14,20 +13,21 @@ module.exports = {
             throw e;
         }
     },
-    createEvent: async args => {
+    createEvent: async (args, req) => {
+        checkAuth(req);
         try {
             const event = new Event({
                 title: args.eventInput.title,
                 description: args.eventInput.description,
                 price: +args.eventInput.price,
                 date: new Date(args.eventInput.date),
-                creator: TEMPORARY_HARDCODED_USER_ID
+                creator: req.userId
             });
 
             const result = await event.save();
             let createdEvent = transformEvent(result);
 
-            const creator = await User.findById(TEMPORARY_HARDCODED_USER_ID);
+            const creator = await User.findById(req.userId);
             if (!creator) {
                 // noinspection ExceptionCaughtLocallyJS
                 throw new Error('User does not exist.');

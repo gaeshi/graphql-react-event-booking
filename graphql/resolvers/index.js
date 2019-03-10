@@ -7,15 +7,17 @@ const Booking = require('../../models/booking');
 const BCRYPT_SALT_ROUNDS = 12;
 const TEMPORARY_HARDCODED_USER_ID = '5c7b7f7d3e970b6d549f7c01';
 
+const transformEvent = event => ({
+    ...event._doc,
+    _id: event.id,
+    date: new Date(event._doc.date).toISOString(),
+    creator: user.bind(this, event.creator)
+});
+
 const events = async eventIds => {
     try {
         const events = await Event.find({_id: {$in: eventIds}});
-        return events.map(event => ({
-            ...event._doc,
-            _id: event.id,
-            date: new Date(event._doc.date).toISOString(),
-            creator: user.bind(this, event.creator)
-        }));
+        return events.map(event => transformEvent(event));
     } catch (e) {
         throw e;
     }
@@ -37,11 +39,7 @@ const user = async userId => {
 const singleEvent = async eventId => {
     try {
         const event = await Event.findById(eventId);
-        return {
-            ...event._doc,
-            _id: event.id,
-            creator: user.bind(this, event.creator)
-        };
+        return transformEvent(event);
     } catch (err) {
         throw err;
     }
@@ -51,14 +49,9 @@ module.exports = {
     events: async () => {
         try {
             const events = await Event.find().populate('creator');
-            return events.map(event => ({
-                ...event._doc,
-                _id: event.id,
-                date: new Date(event._doc.date).toISOString(),
-                creator: user.bind(this, event._doc.creator)
-            }));
+            return events.map(event => transformEvent(event));
         } catch (e) {
-            throw err
+            throw e;
         }
     },
     bookings: async () => {
@@ -90,12 +83,7 @@ module.exports = {
             });
 
             const result = await event.save();
-            let createdEvent = {
-                ...result._doc,
-                _id: result._doc._id.toString(),
-                date: new Date(event._doc.date).toISOString(),
-                creator: user.bind(this, result._doc.creator)
-            };
+            let createdEvent = transformEvent(result);
 
             const creator = await User.findById(TEMPORARY_HARDCODED_USER_ID);
             if (!creator) {
@@ -151,11 +139,7 @@ module.exports = {
     },
     cancelBooking: async args => {
         const booking = await Booking.findById({_id: args.bookingId}).populate('event');
-        const event = {
-            ...booking.event._doc,
-            _id: booking.event.id,
-            creator: user.bind(this, booking.event._doc.creator)
-        };
+        const event = transformEvent(booking.event);
         if (!booking) {
             // noinspection ExceptionCaughtLocallyJS
             throw new Error('Booking does not exist.');

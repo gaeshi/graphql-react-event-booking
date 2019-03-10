@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const Event = require('../../models/event');
 const User = require('../../models/user');
 const Booking = require('../../models/booking');
+const { dateToString } = require('../../helpers/date');
 
 const BCRYPT_SALT_ROUNDS = 12;
 const TEMPORARY_HARDCODED_USER_ID = '5c7b7f7d3e970b6d549f7c01';
@@ -10,7 +11,7 @@ const TEMPORARY_HARDCODED_USER_ID = '5c7b7f7d3e970b6d549f7c01';
 const transformEvent = event => ({
     ...event._doc,
     _id: event.id,
-    date: new Date(event._doc.date).toISOString(),
+    date: dateToString(event._doc.date),
     creator: user.bind(this, event.creator)
 });
 
@@ -63,8 +64,8 @@ module.exports = {
                     _id: b.id,
                     user: user.bind(this, b._doc.user),
                     event: singleEvent.bind(this, b._doc.event),
-                    createdAt: new Date(b._doc.createdAt).toISOString(),
-                    updatedAt: new Date(b._doc.updatedAt).toISOString()
+                    createdAt: dateToString(b._doc.createdAt),
+                    updatedAt: dateToString(b._doc.updatedAt)
                 }
             })
         } catch (err) {
@@ -133,8 +134,8 @@ module.exports = {
             _id: result.id,
             user: user.bind(this, result._doc.user),
             event: singleEvent.bind(this, result._doc.event),
-            createdAt: new Date(result._doc.createdAt).toISOString(),
-            updatedAt: new Date(result._doc.updatedAt).toISOString()
+            createdAt: dateToString(result._doc.createdAt),
+            updatedAt: dateToString(result._doc.updatedAt)
         }
     },
     cancelBooking: async args => {

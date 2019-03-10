@@ -4,7 +4,7 @@ const graphqlHttp = require('express-graphql');
 const mongoose = require('mongoose');
 
 const graphQlSchema = require('./graphql/schema');
-const graphQlResolvers = require('./graphql/resolvers');
+const graphQlResolvers = require('./graphql/resolvers/index');
 
 const app = express();
 

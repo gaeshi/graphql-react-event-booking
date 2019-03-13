@@ -31,6 +31,6 @@ mongoose.connect(`mongodb+srv://${
     }?retryWrites=true`)
     .then(() => {
         console.log('connected');
-        app.listen(3000)
+        app.listen(8000)
     })
     .catch(console.error);

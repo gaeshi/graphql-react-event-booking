@@ -4,11 +4,14 @@ import Modal from '../components/Modal/Modal';
 import Backdrop from "../components/Backdrop/Backdrop";
 import './Events.css';
 import AuthContext from "../context/auth-context";
+import EventList from "../components/Events/EventList/EventList";
+import Spinner from "../components/Spinner/Spinner";
 
 class EventsPage extends Component {
     state = {
         creating: false,
-        events: []
+        events: [],
+        isLoading: false
     };
 
     constructor(props) {
@@ -84,7 +87,21 @@ class EventsPage extends Component {
             return res.json();
         }).then(resData => {
             console.log(resData);
-            this.fetchEvents();
+            const createdEvent = resData.data.createEvent;
+            this.setState(prevState => {
+                const updatedEvents = [...prevState.events];
+                updatedEvents.push({
+                    _id: createdEvent._id,
+                    title: createdEvent.title,
+                    description: createdEvent.description,
+                    date: createdEvent.date,
+                    price: createdEvent.price,
+                    creator: {
+                        _id: this.context.userId,
+                    }
+                });
+                return {events: updatedEvents};
+            });
         }).catch(err => {
             console.log(err);
         });
@@ -95,6 +112,8 @@ class EventsPage extends Component {
     };
 
     fetchEvents = () => {
+        this.setState({isLoading: true});
+
         const requestBody = {
             query: `query {
               events {
@@ -128,18 +147,15 @@ class EventsPage extends Component {
             return res.json();
         }).then(resData => {
             const events = resData.data.events;
-            this.setState({events});
+            this.setState({events, isLoading: false});
             console.log(resData);
         }).catch(err => {
             console.log(err);
+            this.setState({isLoading: false})
         });
     };
 
     render() {
-        const eventList = this.state.events.map(event => (
-            <li key={event._id}
-                className="events__list-item">{event.title}</li>
-        ));
         return <>
             {this.state.creating && <Backdrop/>}
             {this.state.creating && <Modal title="Add Event"
@@ -172,9 +188,10 @@ class EventsPage extends Component {
                     <button className="btn" onClick={this.startCreateEventHandler}>Create Event</button>
                 </div>
             )}
-            <ul className="events__list">
-                {eventList}
-            </ul>
+            {this.state.isLoading ?
+                <Spinner /> :
+                <EventList events={this.state.events} authUserId={this.context.userId}/>
+            }
         </>;
     }
 }

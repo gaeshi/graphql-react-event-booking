@@ -4,9 +4,10 @@ const {transformBooking, transformEvent} = require('./merge');
 const {checkAuth} = require("../../helpers/auth");
 
 module.exports = {
-    bookings: async () => {
+    bookings: async (_, req) => {
+        checkAuth(req);
         try {
-            const bookings = await Booking.find();
+            const bookings = await Booking.find({user: req.userId});
             return bookings.map(booking => transformBooking(booking));
         } catch (err) {
             throw err;

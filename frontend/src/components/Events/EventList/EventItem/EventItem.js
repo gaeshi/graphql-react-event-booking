@@ -9,7 +9,7 @@ const eventItem = props => <li key={props.eventId} className="events__list-item"
     </div>
     <div>
         {props.userId !== props.creatorId ?
-            <button className="btn">View Details</button> :
+            <button className="btn" onClick={props.onDetail.bind(this, props.eventId)}>View Details</button> :
             <p>You're the owner of this event.</p>}
     </div>
 </li>;

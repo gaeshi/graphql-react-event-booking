@@ -4,6 +4,7 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     position: fixed;
     top: 20vh;
+    z-index: 100;
 }
 
 .modal__header {

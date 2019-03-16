@@ -1,5 +1,7 @@
 import React, {Component} from 'react';
 import Spinner from "../components/Spinner/Spinner";
+import BookingList from "../components/Bookings/BookingList/BookingList";
+import AuthContext from '../context/auth-context';
 
 class BookingsPage extends Component {
     state = {
@@ -8,6 +10,7 @@ class BookingsPage extends Component {
     };
 
     isActive = true;
+    static contextType = AuthContext;
 
     componentDidMount() {
         this.fetchBookings();
@@ -32,12 +35,14 @@ class BookingsPage extends Component {
         };
 
         console.log(requestBody);
+        const token = this.context.token;
 
         fetch('http://localhost:8000/graphql', {
             method: 'POST',
             body: JSON.stringify(requestBody),
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
         }).then(res => {
             if (res.status !== 200 && res.status !== 201) {
@@ -61,18 +66,60 @@ class BookingsPage extends Component {
 
     componentWillUnmount() {
         this.isActive = false;
-    }
+    };
+
+    deleteBookingHandler = bookingId => {
+        this.setState({isLoading: true});
+        const requestBody = {
+            query: `
+              mutation {
+                cancelBooking(bookingId: "${bookingId}") {
+                  _id
+                  title
+                }      
+              }
+            `
+        };
+
+        console.log(requestBody);
+
+        fetch('http://localhost:8000/graphql', {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.context.token
+            },
+        }).then(res => {
+            if (res.status !== 200 && res.status !== 201) {
+                throw new Error('Failed!');
+            }
+
+            return res.json();
+        }).then(resData => {
+            if (this.isActive) {
+                this.setState(prevState => {
+                    const updatedBookings = prevState.bookings.filter(b => b._id !== bookingId);
+                    return {bookings: updatedBookings, isLoading: false};
+                });
+            }
+            console.log(resData);
+        }).catch(err => {
+            console.log(err);
+            if (this.isActive) {
+                this.setState({isLoading: false})
+            }
+        });
+    };
 
     render() {
         return <>
             {this.state.isLoading ?
                 <Spinner/> :
-                <ul>
-                    {this.state.bookings.map(booking =>
-                        <li key={booking._id}>
-                            {booking.event.title} - {new Date(booking.createdAt).toLocaleDateString()}
-                        </li>)}
-                </ul>
+                <BookingList
+                    bookings={this.state.bookings}
+                    onCancelBooking={this.deleteBookingHandler}
+                />
             }
         </>;
     }

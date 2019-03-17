@@ -1,0 +1,10 @@
+### Retrieve and save token.
+POST http://{{host}}/graphql
+Content-Type: application/json
+
+{
+  "query": "query Login($email: String!, $password: String!) { login(email: $email, password: $password) { token } }",
+  "variables": {"email": "{{email}}", "password": "{{password}}"}
+}
+
+> {% client.global.set("auth_token", response.body.data.login.token); %}

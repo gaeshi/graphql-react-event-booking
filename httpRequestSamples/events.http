@@ -1,0 +1,25 @@
+### Get events
+POST http://{{host}}/graphql
+Content-Type: application/json
+
+{
+  "query": "query { events { _id title price date description } }"
+}
+
+### Get events with creator
+POST http://{{host}}/graphql
+Content-Type: application/json
+
+{
+  "query": "query { events { _id title price date description creator { _id email } } }"
+}
+
+### Get events with creator and createdEvents
+POST http://{{host}}/graphql
+Content-Type: application/json
+
+{
+  "query": "query { events { _id title price date description creator { _id email createdEvents { title } } } }"
+}
+
+###

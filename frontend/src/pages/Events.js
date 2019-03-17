@@ -53,8 +53,8 @@ class EventsPage extends Component {
         console.log(event);
 
         const requestBody = {
-            query: `mutation {
-              createEvent(eventInput: {title: "${title}", description: "${description}", price: ${price}, date: "${date}"}) {
+            query: `mutation CreateEvent($title: String!, $description: String!, $price: Float!, $date: String!) {
+              createEvent(eventInput: {title: $title, description: $description, price: $price, date: $date}) {
                 _id
                 title
                 price
@@ -65,8 +65,8 @@ class EventsPage extends Component {
                   email
                 }
               }
-            }
-            `
+            }`,
+            variables: {title, description, price, date}
         };
 
         console.log(requestBody);
@@ -173,14 +173,14 @@ class EventsPage extends Component {
         this.setState({isLoading: true});
 
         const requestBody = {
-            query: `mutation {
-              bookEvent(eventId: "${this.state.selectedEvent._id}") {
+            query: `mutation BookEvent($id: ID!) {
+              bookEvent(eventId: $id) {
                 _id
                 createdAt
                 updatedAt
               }
-            }
-            `
+            }`,
+            variables: {id: this.state.selectedEvent._id}
         };
 
         console.log(requestBody);

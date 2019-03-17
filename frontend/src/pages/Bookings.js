@@ -72,13 +72,14 @@ class BookingsPage extends Component {
         this.setState({isLoading: true});
         const requestBody = {
             query: `
-              mutation {
-                cancelBooking(bookingId: "${bookingId}") {
+              mutation CancelBooking($id: ID!) {
+                cancelBooking(bookingId: $id) {
                   _id
                   title
                 }      
               }
-            `
+            `,
+            variables: {id: bookingId}
         };
 
         console.log(requestBody);
